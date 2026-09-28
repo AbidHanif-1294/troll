@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEC-OVERRIDE // ACCESS GATEWAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #050505;
+            --bg-panel: #0a0a0a;
+            --text-main: #ffb000;
+            --text-value: #ffffff;
+            --text-dim: #555555;
+            --text-dim2: #888888;
+            --red-alert: #e63946;
+            --red-dark: #1a0505;
+            --red-border: #5c1a1a;
+            --red-text: #ff6b6b;
+            --yellow-box: #ffb000;
+            --green-success: #33ff33;
+            
+            --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+            --font-sans: Arial, Helvetica, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            overflow: hidden;
+        }
+
+        .center-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* =========================================
+           PANEL LOGIN
+           ========================================= */
+        .login-panel {
+            width: 100%;
+            border: 1px solid #333;
+            background-color: var(--bg-panel);
+            position: relative;
+            padding: 35px 30px 30px 30px;
+        }
+
+        .doc-header {
+            position: absolute;
+            top: -13px;
+            left: 20px;
+            background-color: var(--yellow-box);
+            color: #000;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            font-size: 13px;
+            padding: 3px 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .ascii-line {
+            color: var(--text-dim);
+            font-size: 13px;
+            overflow: hidden;
+            white-space: nowrap;
+            letter-spacing: 1px;
+            line-height: 1.2;
+        }
+
+        .title-text {
+            text-align: center;
+            font-size: 15px;
+            letter-spacing: 2px;
+            margin: 8px 0;
+            color: var(--text-main);
+        }
+
+        .content-area {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-top: 25px;
+            color: var(--text-main);
+        }
+
+        .content-area .value {
+            color: var(--text-value);
+        }
+
+        .directive-row {
+            display: flex;
+            align-items: center;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .scramble-box {
+            display: inline-block;
+            border: 1px solid var(--red-border);
+            background-color: rgba(230, 57, 70, 0.08);
+            padding: 1px 10px;
+            color: var(--red-alert);
+            font-weight: bold;
+            margin-left: 8px;
+            letter-spacing: 2px;
+            font-size: 14px;
+        }
+
+        .divider {
+            color: var(--text-dim);
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin: 15px 0 20px 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .system-message {
+            font-size: 15px;
+            color: var(--text-main);
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           AREA INPUT TERMINAL KUSTOM
+           ========================================= */
+        .input-container {
+            border: 1px solid #333;
+            padding: 18px 22px;
+            margin-top: 25px;
+            background-color: #000;
+            cursor: text;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .prompt {
+            color: var(--text-main);
+            font-weight: bold;
+            margin-right: 10px;
+            white-space: nowrap;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .typed-display {
+            color: var(--text-main);
+            font-size: 16px;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            min-height: 20px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background-color: var(--text-main);
+            margin-left: 3px;
+            animation: blink-cursor 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink-cursor {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: text;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           TAMPILAN 2: BREACH SCREEN
+           ========================================= */
+        .breach-panel {
+            display: none;
+            width: 100%;
+            border: 2px solid var(--red-alert);
+            background-color: var(--red-dark);
+            position: relative;
+            padding: 55px 40px 40px 40px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(230, 57, 70, 0.2);
+        }
+
+        .breach-alert {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--red-alert);
+            color: #fff;
+            font-family: var(--font-sans);
+            font-weight: bold;
+            font-size: 13px;
+            padding: 7px 100px;
+            text-align: center;
+            line-height: 1.3;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .breach-title {
+            font-family: var(--font-sans);
+            color: #fff;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        }
+
+        .breach-desc-line1 {
+            color: var(--text-dim2);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.6;
+            margin-bottom: 4px;
+        }
+
+        .breach-desc-line2 {
+            color: #cccccc;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .breach-quote {
+            color: #bbbbbb;
+            font-family: var(--font-mono);
+            font-size: 15px;
+            margin-bottom: 30px;
+            margin-top: 25px;
+            letter-spacing: 1px;
+        }
+
+        .countdown-container {
+            border: 1px solid var(--red-alert);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 25px;
+            max-width: 600px;
+            margin: 0 auto 25px auto;
+        }
+
+        .countdown-number {
+            font-family: var(--font-sans);
+            font-size: 75px;
+            font-weight: bold;
+            color: var(--red-alert);
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+
+        .countdown-label {
+            color: var(--red-text);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 4px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+        }
+
+        .penalty-box {
+            background-color: var(--red-alert);
+            color: #fff;
+            font-family: var(--font-sans);
+            font-weight: bold;
+            font-size: 12px;
+            padding: 6px 15px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .emergency-box {
+            border: 1px dashed var(--yellow-box);
+            padding: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: #999999;
+            line-height: 1.7;
+        }
+
+        .emergency-title {
+            color: var(--yellow-box);
+            font-family: var(--font-mono);
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .emergency-box span {
+            color: #dddddd;
+        }
+
+        /* =========================================
+           TAMPILAN 3: SUKSES (DENGAN ANIMASI KEDAP-KEDIP)
+           ========================================= */
+        .success-panel {
+            display: none;
+            width: 100%;
+            border: 2px solid var(--green-success);
+            background-color: #001a00;
+            padding: 40px;
+            text-align: center;
+            /* Animasi box berdenyut */
+            animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+
+        /* Animasi border berdenyut */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(51, 255, 51, 0.3), inset 0 0 10px rgba(51, 255, 51, 0.05);
+                border-color: var(--green-success);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(51, 255, 51, 0.7), inset 0 0 20px rgba(51, 255, 51, 0.15);
+                border-color: #88ff88;
+            }
+        }
+
+        /* Teks ACCESS GRANTED yang berkedip */
+        .success-title {
+            font-family: var(--font-sans);
+            color: var(--green-success);
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--green-success);
+            /* Animasi kedap-kedip */
+            animation: blink-granted 0.8s step-end infinite;
+        }
+
+        /* Animasi teks berkedip */
+        @keyframes blink-granted {
+            0%, 100% {
+                opacity: 1;
+                text-shadow: 0 0 10px var(--green-success), 0 0 20px var(--green-success);
+            }
+            50% {
+                opacity: 0.4;
+                text-shadow: 0 0 5px var(--green-success);
+            }
+        }
+
+        .success-img {
+            max-width: 25%;
+            height: auto;
+            border: 1px solid var(--green-success);
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+        }
+
+        .link-btn {
+            display: inline-block;
+            background-color: transparent;
+            color: var(--green-success);
+            border: 1px solid var(--green-success);
+            padding: 15px 30px;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            /* Animasi tombol berkedip halus */
+            animation: blink-btn 2s ease-in-out infinite;
+        }
+
+        @keyframes blink-btn {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(51, 255, 51, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+            }
+        }
+
+        .link-btn:hover {
+            background-color: var(--green-success);
+            color: #000;
+            animation: none; /* Hentikan animasi saat hover */
+            box-shadow: 0 0 30px var(--green-success);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .center-wrapper { padding: 10px; }
+            .breach-alert { font-size: 10px; padding: 5px 10px; white-space: normal; width: 90%; }
+            .breach-title { font-size: 18px; }
+            .countdown-number { font-size: 50px; }
+            .doc-header { font-size: 10px; }
+            .title-text { font-size: 12px; }
+            .content-area { font-size: 13px; }
+            .breach-desc-line1 { font-size: 10px; letter-spacing: 1px; }
+            .breach-desc-line2 { font-size: 11px; }
+            .breach-quote { font-size: 12px; }
+            .emergency-box { font-size: 11px; }
+            .success-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="center-wrapper">
+        
+        <!-- TAMPILAN 1: LOGIN TERMINAL -->
+        <div class="login-panel" id="loginScreen">
+            <div class="doc-header">DOCUMENT ID: SEC-OVERRIDE-V5 // EYES ONLY</div>
+            
+            <div class="ascii-line">=============================================================================================================</div>
+            <div class="title-text">SECURITY DOSSIER // RESTRICTED ACCESS GATEWAY v5.0</div>
+            <div class="ascii-line">=============================================================================================================</div>
+            
+            <div class="content-area">
+                <div>[STATUS]: <span class="value">Kredensial belum terverifikasi. Arsip berada di bawah isolasi.</span></div>
+                
+                <div class="directive-row">
+                    <span>[DE-CLASSIFICATION DIRECTIVE]:</span>
+                    <span class="scramble-box" id="scrambleDirective">#>)&)00:</span>
+                </div>
+
+                <div class="divider">--------------------------------------------------------------------------------</div>
+            </div>
+
+            <div class="system-message" id="systemMessage">
+                [SISTEM SIAP] Menunggu input kredensial...
+            </div>
+
+            <div class="input-container" id="terminalContainer">
+                <span class="prompt">icteam@auth-gateway:~$</span>
+                <span class="typed-display" id="typedDisplay">
+                    <span id="typedText"></span><span class="cursor" id="cursor"></span>
+                </span>
+                <input type="text" id="hiddenInput" class="hidden-input" autocomplete="off" spellcheck="false" autofocus>
+            </div>
+        </div>
+
+        <!-- TAMPILAN 2: CRITICAL CONTAINMENT BREACH -->
+        <div class="breach-panel" id="breachScreen">
+            <div class="breach-alert">ALERT: CONTAINMENT BREACH<br>PROTOCOL ACTIVE</div>
+            
+            <div class="breach-title">[!] CRITICAL CONTAINMENT BREACH</div>
+            
+            <div class="breach-desc-line1">PELANGGARAN INTEGRITAS PROTOKOL TERDETEKSI DI FASILITAS.</div>
+            <div class="breach-desc-line2">Pelanggaran berulang melipatgandakan durasi pembekuan seluruh terminal!</div>
+
+            <div class="breach-quote">
+                Yahahahaaha - Kadiv Programming 29'
+            </div>
+
+            <div class="countdown-container">
+                <div class="countdown-number" id="countdownDisplay">111</div>
+                <div class="countdown-label">DETIK HINGGA SISTEM DIPULIHKAN</div>
+                <div class="penalty-box" id="penaltyBox">PENALTI AKTIF: 2X KELIPATAN (123s)</div>
+            </div>
+
+            <div class="emergency-box">
+                <div class="emergency-title">⚠️ PROTOKOL DARURAT AKTIF:</div>
+                Terminal dibekukan secara global. Hubungi <span>Ketua Umum ICTeam</span><br>
+                selaku otoritas situs untuk otorisasi dekontaminasi manual.
+            </div>
+        </div>
+
+        <!-- TAMPILAN 3: SUKSES (DENGAN ANIMASI) -->
+        <div class="success-panel" id="successScreen">
+            <div class="success-title">[ ACCESS GRANTED ]</div>
+            <div style="color: #fff; margin-bottom: 20px; font-family: var(--font-mono); font-size: 14px;">Enkripsi berhasil dibuka. Selamat datang, Administrator.</div>
+            
+            <img src="https://i.ibb.co.com/TxcJGv3V/1.jpg" alt="Classified Image" class="success-img">
+            
+            <div style="color: #fff; margin-bottom: 10px; font-family: var(--font-mono); font-size: 14px;">Data yang Anda cari telah didekripsi. Silakan akses tautan di bawah ini:</div>
+            
+            <a href="https://monopolingawiland.vercel.app" target="_blank" class="link-btn">BUKA LINK RAHASIA</a>
+        </div>
+
+    </div>
+
+    <script>
+        // --- KONFIGURASI ---
+        const CORRECT_PASSWORD = "rahasia123"; 
+        const BASE_PENALTY = 111; 
+        const MULTIPLIER = 2; 
+
+        // --- VARIABEL STATE ---
+        let isLocked = false;
+        let currentPenaltyTime = BASE_PENALTY;
+        let countdownInterval;
+        let scrambleInterval;
+
+        // --- ELEMEN DOM ---
+        const loginScreen = document.getElementById('loginScreen');
+        const breachScreen = document.getElementById('breachScreen');
+        const successScreen = document.getElementById('successScreen');
+        const hiddenInput = document.getElementById('hiddenInput');
+        const typedText = document.getElementById('typedText');
+        const cursor = document.getElementById('cursor');
+        const terminalContainer = document.getElementById('terminalContainer');
+        const systemMessage = document.getElementById('systemMessage');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        const penaltyBox = document.getElementById('penaltyBox');
+        const scrambleDirective = document.getElementById('scrambleDirective');
+
+        // --- FUNGSI SCRAMBLE INFINITE ---
+        const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        
+        function startScramble() {
+            clearInterval(scrambleInterval);
+            scrambleInterval = setInterval(() => {
+                let randomStr = "";
+                for (let i = 0; i < 9; i++) { 
+                    randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                scrambleDirective.textContent = randomStr;
+            }, 50); 
+        }
+
+        // --- LOGIKA TERMINAL KUSTOM ---
+        function activateInput() {
+            if (isLocked) return;
+            hiddenInput.style.pointerEvents = 'auto';
+            hiddenInput.focus();
+        }
+
+        terminalContainer.addEventListener('click', activateInput);
+
+        hiddenInput.addEventListener('input', (e) => {
+            typedText.textContent = '*'.repeat(e.target.value.length);
+        });
+
+        hiddenInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const inputVal = hiddenInput.value;
+                if (isLocked) return;
+
+                clearInterval(scrambleInterval);
+                scrambleDirective.textContent = "#>)&)00:"; 
+
+                if (inputVal === CORRECT_PASSWORD) {
+                    showSuccess();
+                } else {
+                    triggerBreach();
+                }
+                
+                hiddenInput.value = '';
+                typedText.textContent = '';
+            }
+        });
+
+        // --- FUNGSI SISTEM ---
+        function triggerBreach() {
+            isLocked = true;
+            hiddenInput.disabled = true;
+            hiddenInput.blur();
+            hiddenInput.style.pointerEvents = 'none';
+            cursor.style.display = 'none';
+            
+            loginScreen.classList.add('hidden');
+            breachScreen.style.display = 'block';
+
+            if (currentPenaltyTime > BASE_PENALTY) {
+                currentPenaltyTime = currentPenaltyTime * MULTIPLIER;
+            } else {
+                currentPenaltyTime = BASE_PENALTY;
+            }
+
+            countdownDisplay.textContent = currentPenaltyTime;
+            penaltyBox.textContent = `PENALTI AKTIF: ${currentPenaltyTime / BASE_PENALTY}X KELIPATAN (${currentPenaltyTime}s)`;
+
+            let timeLeft = currentPenaltyTime;
+            
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                countdownDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    resetSystem();
+                }
+            }, 1000);
+        }
+
+        function resetSystem() {
+            isLocked = false;
+            hiddenInput.disabled = false;
+            hiddenInput.style.pointerEvents = 'none';
+            cursor.style.display = 'inline-block';
+            
+            breachScreen.style.display = 'none';
+            loginScreen.classList.remove('hidden');
+
+            systemMessage.innerHTML = '[SISTEM DI-RESET] Waktu penalti telah berakhir. Sistem memulihkan akses awal.';
+            systemMessage.style.color = 'var(--text-main)';
+
+            startScramble();
+        }
+
+        function showSuccess() {
+            clearInterval(countdownInterval);
+            clearInterval(scrambleInterval);
+            loginScreen.classList.add('hidden');
+            breachScreen.style.display = 'none';
+            successScreen.style.display = 'block';
+        }
+
+        window.onload = () => {
+            hiddenInput.focus();
+            startScramble();
+        };
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+</body>
+</html>
