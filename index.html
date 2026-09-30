@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEC-OVERRIDE // ACCESS GATEWAY</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.min.css" rel="stylesheet">
     <style>
         :root {
             --bg-body: #050505;
@@ -18,34 +19,63 @@
             --red-border: #5c1a1a;
             --red-text: #ff6b6b;
             --yellow-box: #ffb000;
-            --green-success: #33ff33;
+            --green-success: #00ff9f;
+            --cyan-scan: #00e5ff;
+            --cyber-magenta: #ff00ff;
+            --cyber-cyan: #00ffff;
             
             --font-mono: 'Share Tech Mono', 'Courier New', monospace;
             --font-sans: Arial, Helvetica, sans-serif;
+            --font-7seg: 'DSEG7-Classic', 'DSEG7', 'Courier New', monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; width: 100%; }
 
         body {
             background-color: var(--bg-body);
             color: var(--text-main);
             font-family: var(--font-mono);
             overflow: hidden;
+            position: relative;
+        }
+
+        /* CYBERPUNK SCANLINE */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 9999;
+            animation: scanline-move 8s linear infinite;
+        }
+
+        @keyframes scanline-move {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+            pointer-events: none;
+            z-index: 9998;
         }
 
         .center-wrapper {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 100%;
             max-width: 900px;
@@ -53,10 +83,165 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 10;
         }
 
         /* =========================================
-           PANEL LOGIN
+           BIOMETRIC SCAN
+           ========================================= */
+        .biometric-panel {
+            width: 100%;
+            border: 2px solid var(--cyan-scan);
+            background-color: #001015;
+            position: relative;
+            padding: 40px 30px 30px 30px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.2), inset 0 0 30px rgba(0, 229, 255, 0.05);
+            display: block;
+        }
+
+        .biometric-header {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--cyan-scan);
+            color: #000;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 3px 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            box-shadow: 0 0 15px var(--cyan-scan);
+        }
+
+        .biometric-title {
+            font-family: var(--font-sans);
+            color: var(--cyan-scan);
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px var(--cyan-scan);
+        }
+
+        .biometric-subtitle {
+            color: #88aabb;
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .scan-area {
+            position: relative;
+            width: 180px;
+            height: 220px;
+            margin: 0 auto 30px auto;
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            background: linear-gradient(to bottom, rgba(0, 229, 255, 0.02), rgba(0, 229, 255, 0.08));
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .scan-area:hover { border-color: var(--cyan-scan); }
+
+        .hand-icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            color: rgba(0, 229, 255, 0.7);
+            text-shadow: 0 0 20px var(--cyan-scan);
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .scan-area.active .hand-icon {
+            color: var(--cyan-scan);
+            text-shadow: 0 0 30px var(--cyan-scan), 0 0 60px var(--cyan-scan);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .scan-ray {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--cyan-scan), transparent);
+            box-shadow: 0 0 15px var(--cyan-scan), 0 0 30px var(--cyan-scan);
+            opacity: 0;
+            z-index: 2;
+        }
+
+        .scan-area.active .scan-ray {
+            opacity: 1;
+            animation: scan-move 1.2s linear infinite;
+        }
+
+        @keyframes scan-move {
+            0% { top: 100%; }
+            100% { top: -5%; }
+        }
+
+        .progress-container {
+            width: 80%;
+            max-width: 400px;
+            margin: 0 auto 20px auto;
+            height: 8px;
+            background-color: rgba(0, 229, 255, 0.1);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--cyan-scan), #88ffff);
+            box-shadow: 0 0 10px var(--cyan-scan);
+            transition: width 0.1s linear;
+        }
+
+        .progress-text {
+            color: var(--cyan-scan);
+            font-size: 13px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .scan-instruction {
+            color: #88aabb;
+            font-size: 13px;
+            letter-spacing: 1px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .scan-instruction span {
+            color: var(--cyan-scan);
+            font-weight: bold;
+        }
+
+        .scan-status {
+            color: #88aabb;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-top: 15px;
+            min-height: 18px;
+            text-transform: uppercase;
+        }
+
+        .scan-status.verified {
+            color: var(--green-success);
+            text-shadow: 0 0 10px var(--green-success);
+        }
+
+        /* =========================================
+           LOGIN PANEL
            ========================================= */
         .login-panel {
             width: 100%;
@@ -64,6 +249,25 @@
             background-color: var(--bg-panel);
             position: relative;
             padding: 35px 30px 30px 30px;
+            display: none;
+            box-shadow: 0 0 30px rgba(255, 176, 0, 0.1), inset 0 0 20px rgba(255, 176, 0, 0.02);
+        }
+
+        .login-panel::before,
+        .login-panel::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--text-main);
+        }
+        .login-panel::before {
+            top: -1px; left: -1px;
+            border-right: none; border-bottom: none;
+        }
+        .login-panel::after {
+            bottom: -1px; right: -1px;
+            border-left: none; border-top: none;
         }
 
         .doc-header {
@@ -72,12 +276,12 @@
             left: 20px;
             background-color: var(--yellow-box);
             color: #000;
-            font-family: var(--font-mono);
             font-weight: bold;
             font-size: 13px;
             padding: 3px 12px;
             letter-spacing: 1px;
             text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(255, 176, 0, 0.5);
         }
 
         .ascii-line {
@@ -95,6 +299,7 @@
             letter-spacing: 2px;
             margin: 8px 0;
             color: var(--text-main);
+            text-shadow: 0 0 8px rgba(255, 176, 0, 0.5);
         }
 
         .content-area {
@@ -104,9 +309,7 @@
             color: var(--text-main);
         }
 
-        .content-area .value {
-            color: var(--text-value);
-        }
+        .content-area .value { color: var(--text-value); }
 
         .directive-row {
             display: flex;
@@ -125,6 +328,7 @@
             margin-left: 8px;
             letter-spacing: 2px;
             font-size: 14px;
+            text-shadow: 0 0 8px var(--red-alert);
         }
 
         .divider {
@@ -143,9 +347,6 @@
             line-height: 1.6;
         }
 
-        /* =========================================
-           AREA INPUT TERMINAL KUSTOM
-           ========================================= */
         .input-container {
             border: 1px solid #333;
             padding: 18px 22px;
@@ -155,6 +356,12 @@
             display: flex;
             align-items: center;
             position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-container:focus-within {
+            border-color: var(--text-main);
+            box-shadow: 0 0 15px rgba(255, 176, 0, 0.3), inset 0 0 10px rgba(255, 176, 0, 0.1);
         }
 
         .prompt {
@@ -183,6 +390,7 @@
             margin-left: 3px;
             animation: blink-cursor 1s step-end infinite;
             vertical-align: middle;
+            box-shadow: 0 0 10px var(--text-main);
         }
 
         @keyframes blink-cursor {
@@ -193,17 +401,206 @@
         .hidden-input {
             position: absolute;
             opacity: 0;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             cursor: text;
             z-index: 10;
             pointer-events: none;
         }
 
         /* =========================================
-           TAMPILAN 2: BREACH SCREEN
+           REBOOT PANEL
+           ========================================= */
+        .reboot-panel {
+            display: none;
+            width: 100%;
+            border: 1px solid #333;
+            background-color: #000;
+            position: relative;
+            padding: 40px 30px;
+            min-height: 380px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 255, 159, 0.1), inset 0 0 30px rgba(0, 255, 159, 0.03);
+        }
+
+        .reboot-panel::before,
+        .reboot-panel::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border: 2px solid var(--yellow-box);
+        }
+        .reboot-panel::before {
+            top: -1px; left: -1px;
+            border-right: none; border-bottom: none;
+        }
+        .reboot-panel::after {
+            bottom: -1px; right: -1px;
+            border-left: none; border-top: none;
+        }
+
+        .reboot-header {
+            position: absolute;
+            top: -13px;
+            left: 20px;
+            background-color: var(--yellow-box);
+            color: #000;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 3px 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px var(--yellow-box);
+        }
+
+        .message-container {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .reboot-message {
+            font-family: var(--font-mono);
+            font-size: 18px;
+            letter-spacing: 2px;
+            line-height: 1.6;
+            min-height: 28px;
+            white-space: pre-wrap;
+        }
+
+        .reboot-message .typing-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background-color: currentColor;
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: blink-cursor 0.6s step-end infinite;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .reboot-message.success-text {
+            color: var(--green-success);
+            text-shadow: 0 0 10px rgba(0, 255, 159, 0.8);
+        }
+
+        .reboot-message.error-text {
+            color: var(--red-alert);
+            text-shadow: 0 0 10px rgba(230, 57, 70, 0.8);
+        }
+
+        .reboot-message.warn-text {
+            color: var(--yellow-box);
+            text-shadow: 0 0 10px rgba(255, 176, 0, 0.8);
+        }
+
+        .reboot-message.info-text {
+            color: var(--yellow-box);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+        }
+
+        /* Titik-titik — muncul langsung, tanpa animasi */
+        .loading-dot {
+            display: inline-block;
+            color: currentColor;
+            text-shadow: 0 0 10px currentColor;
+            margin: 0 4px;
+            font-size: 22px;
+        }
+
+        /* Untuk looping dots */
+        .looping-dots {
+            display: inline-block;
+        }
+        /* Titik muncul langsung, tanpa animasi */
+
+        /* =========================================
+           PROGRESS BAR 7-SEGMENT
+           ========================================= */
+        .reboot-progress-wrapper {
+            width: 80%;
+            max-width: 550px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* TANPA ANIMASI — Muncul langsung */
+        .reboot-progress-wrapper.active {
+            display: flex;
+        }
+
+        .percentage-display {
+            font-family: var(--font-7seg);
+            font-size: 52px;
+            color: var(--green-success);
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(0, 255, 159, 0.8), 0 0 30px rgba(0, 255, 159, 0.4);
+            line-height: 1;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .percentage-display .percent-sign {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            color: var(--green-success);
+            text-shadow: 0 0 10px rgba(0, 255, 159, 0.6);
+        }
+
+        .reboot-progress-bar-container {
+            width: 100%;
+            height: 14px;
+            background-color: rgba(0, 255, 159, 0.08);
+            border: 1px solid rgba(0, 255, 159, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reboot-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #00cc00, var(--green-success), #88ff88);
+            box-shadow: 0 0 15px var(--green-success), inset 0 0 10px rgba(255, 255, 255, 0.3);
+            transition: width 0.1s linear;
+            position: relative;
+        }
+
+        .reboot-progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%);
+            background-size: 20px 20px;
+            animation: progress-stripes 0.5s linear infinite;
+        }
+
+        @keyframes progress-stripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+
+        .progress-status-label {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--green-success);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* =========================================
+           BREACH PANEL
            ========================================= */
         .breach-panel {
             display: none;
@@ -213,7 +610,7 @@
             position: relative;
             padding: 55px 40px 40px 40px;
             text-align: center;
-            box-shadow: 0 0 30px rgba(230, 57, 70, 0.2);
+            box-shadow: 0 0 30px rgba(230, 57, 70, 0.2), inset 0 0 30px rgba(230, 57, 70, 0.05);
         }
 
         .breach-alert {
@@ -232,6 +629,13 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             white-space: nowrap;
+            box-shadow: 0 0 20px var(--red-alert);
+            animation: alert-blink 1s ease-in-out infinite;
+        }
+
+        @keyframes alert-blink {
+            0%, 100% { box-shadow: 0 0 20px var(--red-alert); }
+            50% { box-shadow: 0 0 40px var(--red-alert); }
         }
 
         .breach-title {
@@ -241,11 +645,11 @@
             font-weight: bold;
             letter-spacing: 2px;
             margin-bottom: 25px;
+            text-shadow: 0 0 15px var(--red-alert);
         }
 
         .breach-desc-line1 {
             color: var(--text-dim2);
-            font-family: var(--font-mono);
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -255,7 +659,6 @@
 
         .breach-desc-line2 {
             color: #cccccc;
-            font-family: var(--font-mono);
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 25px;
@@ -263,7 +666,6 @@
 
         .breach-quote {
             color: #bbbbbb;
-            font-family: var(--font-mono);
             font-size: 15px;
             margin-bottom: 30px;
             margin-top: 25px;
@@ -285,11 +687,11 @@
             color: var(--red-alert);
             line-height: 1;
             margin-bottom: 12px;
+            text-shadow: 0 0 20px var(--red-alert);
         }
 
         .countdown-label {
             color: var(--red-text);
-            font-family: var(--font-mono);
             font-size: 12px;
             letter-spacing: 4px;
             margin-bottom: 18px;
@@ -314,7 +716,6 @@
             max-width: 700px;
             margin: 0 auto;
             text-align: center;
-            font-family: var(--font-mono);
             font-size: 13px;
             color: #999999;
             line-height: 1.7;
@@ -322,7 +723,6 @@
 
         .emergency-title {
             color: var(--yellow-box);
-            font-family: var(--font-mono);
             font-weight: bold;
             margin-bottom: 8px;
             text-transform: uppercase;
@@ -330,12 +730,10 @@
             letter-spacing: 1px;
         }
 
-        .emergency-box span {
-            color: #dddddd;
-        }
+        .emergency-box span { color: #dddddd; }
 
         /* =========================================
-           TAMPILAN 3: SUKSES (DENGAN ANIMASI KEDAP-KEDIP)
+           SUCCESS PANEL
            ========================================= */
         .success-panel {
             display: none;
@@ -344,45 +742,107 @@
             background-color: #001a00;
             padding: 40px;
             text-align: center;
-            /* Animasi box berdenyut */
+            position: relative;
+            overflow: hidden;
             animation: pulse-glow 1.5s ease-in-out infinite;
         }
 
-        /* Animasi border berdenyut */
         @keyframes pulse-glow {
             0%, 100% {
-                box-shadow: 0 0 20px rgba(51, 255, 51, 0.3), inset 0 0 10px rgba(51, 255, 51, 0.05);
+                box-shadow: 0 0 20px rgba(0, 255, 159, 0.3), inset 0 0 15px rgba(0, 255, 159, 0.05);
                 border-color: var(--green-success);
             }
             50% {
-                box-shadow: 0 0 40px rgba(51, 255, 51, 0.7), inset 0 0 20px rgba(51, 255, 51, 0.15);
+                box-shadow: 0 0 60px rgba(0, 255, 159, 0.8), inset 0 0 30px rgba(0, 255, 159, 0.2);
                 border-color: #88ff88;
             }
         }
 
-        /* Teks ACCESS GRANTED yang berkedip */
+        .particle-container {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .pixel {
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 4px;
+            background-color: var(--green-success);
+            box-shadow: 0 0 6px var(--green-success);
+            opacity: 0;
+            animation: pixel-explode 2s ease-out forwards;
+        }
+
+        @keyframes pixel-explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0.3);
+                opacity: 0;
+            }
+        }
+
         .success-title {
             font-family: var(--font-sans);
             color: var(--green-success);
-            font-size: 26px;
+            font-size: 32px;
             font-weight: bold;
             margin-bottom: 20px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--green-success);
-            /* Animasi kedap-kedip */
-            animation: blink-granted 0.8s step-end infinite;
+            letter-spacing: 3px;
+            position: relative;
+            text-shadow: 
+                0 0 10px var(--green-success),
+                0 0 20px var(--green-success);
+            animation: blink-granted 1.2s step-end infinite;
+            z-index: 6;
         }
 
-        /* Animasi teks berkedip */
+        .success-title::before,
+        .success-title::after {
+            content: '[ ACCESS GRANTED ]';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #001a00;
+            overflow: hidden;
+        }
+
+        .success-title::before {
+            color: var(--cyber-magenta);
+            animation: glitch-1 2s infinite linear alternate-reverse;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+        }
+
+        .success-title::after {
+            color: var(--cyber-cyan);
+            animation: glitch-2 1.5s infinite linear alternate-reverse;
+            clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+        }
+
+        @keyframes glitch-1 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 1px); }
+            40% { transform: translate(1px, -1px); }
+            60% { transform: translate(-1px, 2px); }
+            80% { transform: translate(2px, -1px); }
+        }
+
+        @keyframes glitch-2 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(2px, -1px); }
+            40% { transform: translate(-1px, 1px); }
+            60% { transform: translate(1px, -2px); }
+            80% { transform: translate(-2px, 1px); }
+        }
+
         @keyframes blink-granted {
-            0%, 100% {
-                opacity: 1;
-                text-shadow: 0 0 10px var(--green-success), 0 0 20px var(--green-success);
-            }
-            50% {
-                opacity: 0.4;
-                text-shadow: 0 0 5px var(--green-success);
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
         }
 
         .success-img {
@@ -390,7 +850,9 @@
             height: auto;
             border: 1px solid var(--green-success);
             margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 159, 0.5);
+            position: relative;
+            z-index: 6;
         }
 
         .link-btn {
@@ -400,7 +862,6 @@
             border: 1px solid var(--green-success);
             padding: 15px 30px;
             text-decoration: none;
-            font-family: var(--font-mono);
             font-size: 15px;
             font-weight: bold;
             transition: all 0.3s ease;
@@ -408,29 +869,24 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-top: 20px;
-            /* Animasi tombol berkedip halus */
+            position: relative;
+            z-index: 6;
             animation: blink-btn 2s ease-in-out infinite;
         }
 
         @keyframes blink-btn {
-            0%, 100% {
-                box-shadow: 0 0 5px rgba(51, 255, 51, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
-            }
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 159, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 159, 0.6); }
         }
 
         .link-btn:hover {
             background-color: var(--green-success);
             color: #000;
-            animation: none; /* Hentikan animasi saat hover */
+            animation: none;
             box-shadow: 0 0 30px var(--green-success);
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
         @media (max-width: 600px) {
             .center-wrapper { padding: 10px; }
@@ -440,11 +896,11 @@
             .doc-header { font-size: 10px; }
             .title-text { font-size: 12px; }
             .content-area { font-size: 13px; }
-            .breach-desc-line1 { font-size: 10px; letter-spacing: 1px; }
-            .breach-desc-line2 { font-size: 11px; }
-            .breach-quote { font-size: 12px; }
-            .emergency-box { font-size: 11px; }
             .success-title { font-size: 20px; }
+            .scan-area { width: 140px; height: 180px; }
+            .hand-icon { font-size: 80px; }
+            .reboot-message { font-size: 14px; }
+            .percentage-display { font-size: 38px; }
         }
     </style>
 </head>
@@ -452,29 +908,44 @@
 
     <div class="center-wrapper">
         
-        <!-- TAMPILAN 1: LOGIN TERMINAL -->
+        <!-- BIOMETRIC SCAN -->
+        <div class="biometric-panel" id="biometricScreen">
+            <div class="biometric-header">SECURITY CHECK // BIOMETRIC VERIFICATION</div>
+            <div class="biometric-title">[ BIOMETRIC SCAN ]</div>
+            <div class="biometric-subtitle">
+                Sistem mendeteksi adanya perimeter keamanan.<br>
+                Verifikasi identitas Anda untuk melanjutkan.
+            </div>
+            <div class="scan-area" id="scanArea">
+                <div class="hand-icon">✋</div>
+                <div class="scan-ray"></div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">VERIFIKASI: 0%</div>
+            <div class="scan-instruction">
+                <span>TEKAN & TAHAN</span> area di atas selama 3 detik<br>
+                untuk memverifikasi identitas Anda
+            </div>
+            <div class="scan-status" id="scanStatus">MENUNGGU VERIFIKASI...</div>
+        </div>
+
+        <!-- LOGIN -->
         <div class="login-panel" id="loginScreen">
             <div class="doc-header">DOCUMENT ID: SEC-OVERRIDE-V5 // EYES ONLY</div>
-            
             <div class="ascii-line">=============================================================================================================</div>
             <div class="title-text">SECURITY DOSSIER // RESTRICTED ACCESS GATEWAY v5.0</div>
             <div class="ascii-line">=============================================================================================================</div>
-            
             <div class="content-area">
                 <div>[STATUS]: <span class="value">Kredensial belum terverifikasi. Arsip berada di bawah isolasi.</span></div>
-                
                 <div class="directive-row">
                     <span>[DE-CLASSIFICATION DIRECTIVE]:</span>
                     <span class="scramble-box" id="scrambleDirective">#>)&)00:</span>
                 </div>
-
                 <div class="divider">--------------------------------------------------------------------------------</div>
             </div>
-
-            <div class="system-message" id="systemMessage">
-                [SISTEM SIAP] Menunggu input kredensial...
-            </div>
-
+            <div class="system-message" id="systemMessage">[SISTEM SIAP] Menunggu input kredensial...</div>
             <div class="input-container" id="terminalContainer">
                 <span class="prompt">icteam@auth-gateway:~$</span>
                 <span class="typed-display" id="typedDisplay">
@@ -484,25 +955,35 @@
             </div>
         </div>
 
-        <!-- TAMPILAN 2: CRITICAL CONTAINMENT BREACH -->
+        <!-- REBOOT -->
+        <div class="reboot-panel" id="rebootScreen">
+            <div class="reboot-header">SYSTEM PROTOCOL // PROCESSING</div>
+            <div class="message-container">
+                <div class="reboot-message" id="rebootMessage"></div>
+            </div>
+            <div class="reboot-progress-wrapper" id="rebootProgressWrapper">
+                <div class="percentage-display">
+                    <span id="percentageValue">0</span><span class="percent-sign">%</span>
+                </div>
+                <div class="reboot-progress-bar-container">
+                    <div class="reboot-progress-bar-fill" id="rebootProgressFill"></div>
+                </div>
+                <div class="progress-status-label" id="progressStatusLabel">LOADING</div>
+            </div>
+        </div>
+
+        <!-- BREACH -->
         <div class="breach-panel" id="breachScreen">
             <div class="breach-alert">ALERT: CONTAINMENT BREACH<br>PROTOCOL ACTIVE</div>
-            
             <div class="breach-title">[!] CRITICAL CONTAINMENT BREACH</div>
-            
             <div class="breach-desc-line1">PELANGGARAN INTEGRITAS PROTOKOL TERDETEKSI DI FASILITAS.</div>
             <div class="breach-desc-line2">Pelanggaran berulang melipatgandakan durasi pembekuan seluruh terminal!</div>
-
-            <div class="breach-quote">
-                Yahahahaaha - Kadiv Programming 29'
-            </div>
-
+            <div class="breach-quote">Poke bgt jir - Kadiv Programming 29'</div>
             <div class="countdown-container">
                 <div class="countdown-number" id="countdownDisplay">111</div>
                 <div class="countdown-label">DETIK HINGGA SISTEM DIPULIHKAN</div>
                 <div class="penalty-box" id="penaltyBox">PENALTI AKTIF: 2X KELIPATAN (123s)</div>
             </div>
-
             <div class="emergency-box">
                 <div class="emergency-title">⚠️ PROTOKOL DARURAT AKTIF:</div>
                 Terminal dibekukan secara global. Hubungi <span>Ketua Umum ICTeam</span><br>
@@ -510,15 +991,13 @@
             </div>
         </div>
 
-        <!-- TAMPILAN 3: SUKSES (DENGAN ANIMASI) -->
+        <!-- SUKSES -->
         <div class="success-panel" id="successScreen">
+            <div class="particle-container" id="particleContainer"></div>
             <div class="success-title">[ ACCESS GRANTED ]</div>
-            <div style="color: #fff; margin-bottom: 20px; font-family: var(--font-mono); font-size: 14px;">Enkripsi berhasil dibuka. Selamat datang, Administrator.</div>
-            
+            <div style="color: #fff; margin-bottom: 20px; font-size: 14px; position: relative; z-index: 6;">Enkripsi berhasil dibuka. Selamat datang, Administrator.</div>
             <img src="https://i.ibb.co.com/TxcJGv3V/1.jpg" alt="Classified Image" class="success-img">
-            
-            <div style="color: #fff; margin-bottom: 10px; font-family: var(--font-mono); font-size: 14px;">Data yang Anda cari telah didekripsi. Silakan akses tautan di bawah ini:</div>
-            
+            <div style="color: #fff; margin-bottom: 10px; font-size: 14px; position: relative; z-index: 6;">Data yang Anda cari telah didekripsi. Silakan akses tautan di bawah ini:</div>
             <a href="https://monopolingawiland.vercel.app" target="_blank" class="link-btn">BUKA LINK RAHASIA</a>
         </div>
 
@@ -527,17 +1006,26 @@
     <script>
         // --- KONFIGURASI ---
         const CORRECT_PASSWORD = "rahasia123"; 
-        const BASE_PENALTY = 111; 
+        const BASE_PENALTY = 5; 
         const MULTIPLIER = 2; 
+        const SCAN_DURATION = 3000;
+        const TYPING_SPEED = 100;
+        const DOT_TICK_SPEED = 400;
 
         // --- VARIABEL STATE ---
         let isLocked = false;
         let currentPenaltyTime = BASE_PENALTY;
         let countdownInterval;
         let scrambleInterval;
+        let scanInterval;
+        let scanStartTime = 0;
+        let isScanning = false;
+        let isBiometricVerified = false;
 
         // --- ELEMEN DOM ---
+        const biometricScreen = document.getElementById('biometricScreen');
         const loginScreen = document.getElementById('loginScreen');
+        const rebootScreen = document.getElementById('rebootScreen');
         const breachScreen = document.getElementById('breachScreen');
         const successScreen = document.getElementById('successScreen');
         const hiddenInput = document.getElementById('hiddenInput');
@@ -548,8 +1036,21 @@
         const countdownDisplay = document.getElementById('countdownDisplay');
         const penaltyBox = document.getElementById('penaltyBox');
         const scrambleDirective = document.getElementById('scrambleDirective');
+        
+        const scanArea = document.getElementById('scanArea');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const scanStatus = document.getElementById('scanStatus');
+        
+        const rebootMessage = document.getElementById('rebootMessage');
+        const rebootProgressWrapper = document.getElementById('rebootProgressWrapper');
+        const percentageValue = document.getElementById('percentageValue');
+        const rebootProgressFill = document.getElementById('rebootProgressFill');
+        const progressStatusLabel = document.getElementById('progressStatusLabel');
+        
+        const particleContainer = document.getElementById('particleContainer');
 
-        // --- FUNGSI SCRAMBLE INFINITE ---
+        // --- SCRAMBLE ---
         const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         
         function startScramble() {
@@ -563,13 +1064,68 @@
             }, 50); 
         }
 
-        // --- LOGIKA TERMINAL KUSTOM ---
+        // =========================================
+        // BIOMETRIC SCAN
+        // =========================================
+        function startScan(e) {
+            e.preventDefault();
+            if (isScanning || isBiometricVerified) return;
+            isScanning = true;
+            scanStartTime = Date.now();
+            scanArea.classList.add('active');
+            scanStatus.textContent = 'SCANNING...';
+            scanStatus.classList.remove('verified');
+            
+            scanInterval = setInterval(() => {
+                const elapsed = Date.now() - scanStartTime;
+                const progress = Math.min((elapsed / SCAN_DURATION) * 100, 100);
+                progressBar.style.width = progress + '%';
+                progressText.textContent = `VERIFIKASI: ${Math.floor(progress)}%`;
+                if (progress >= 100) completeScan();
+            }, 30);
+        }
+
+        function cancelScan() {
+            if (isBiometricVerified) return;
+            isScanning = false;
+            scanArea.classList.remove('active');
+            clearInterval(scanInterval);
+            progressBar.style.width = '0%';
+            progressText.textContent = 'VERIFIKASI: 0%';
+            scanStatus.textContent = 'MENUNGGU VERIFIKASI...';
+            scanStatus.classList.remove('verified');
+        }
+
+        function completeScan() {
+            isScanning = false;
+            isBiometricVerified = true;
+            clearInterval(scanInterval);
+            scanArea.classList.remove('active');
+            progressBar.style.width = '100%';
+            progressText.textContent = 'VERIFIKASI: 100%';
+            scanStatus.textContent = '✓ IDENTITAS TERVERIFIKASI';
+            scanStatus.classList.add('verified');
+            setTimeout(() => {
+                biometricScreen.style.display = 'none';
+                loginScreen.style.display = 'block';
+                hiddenInput.focus();
+                startScramble();
+            }, 1200);
+        }
+
+        scanArea.addEventListener('mousedown', startScan);
+        scanArea.addEventListener('touchstart', startScan, { passive: false });
+        document.addEventListener('mouseup', cancelScan);
+        document.addEventListener('touchend', cancelScan);
+
+        // =========================================
+        // TERMINAL INPUT
+        // =========================================
         function activateInput() {
             if (isLocked) return;
             hiddenInput.style.pointerEvents = 'auto';
             hiddenInput.focus();
         }
-
         terminalContainer.addEventListener('click', activateInput);
 
         hiddenInput.addEventListener('input', (e) => {
@@ -580,29 +1136,262 @@
             if (e.key === 'Enter') {
                 const inputVal = hiddenInput.value;
                 if (isLocked) return;
-
                 clearInterval(scrambleInterval);
                 scrambleDirective.textContent = "#>)&)00:"; 
-
                 if (inputVal === CORRECT_PASSWORD) {
-                    showSuccess();
+                    startRebootSequence();
                 } else {
                     triggerBreach();
                 }
-                
                 hiddenInput.value = '';
                 typedText.textContent = '';
             }
         });
 
-        // --- FUNGSI SISTEM ---
-        function triggerBreach() {
+        // =========================================
+        // REBOOT SEQUENCE
+        // =========================================
+        const rebootSequence = [
+            { 
+                text: "Server berhasil diakses...", 
+                type: "typing",
+                class: "info-text", 
+                holdDuration: 1500 
+            },
+            { 
+                text: "Memulihkan kembali sistem...", 
+                type: "typing",
+                class: "warn-text", 
+                holdDuration: 1800 
+            },
+            { 
+                text: "Kredensial invalid! Tidak berhasil mendapatkan akses", 
+                type: "typing",
+                class: "error-text", 
+                holdDuration: 1500 
+            },
+            { 
+                text: "Shutting down system!", 
+                type: "typing",
+                class: "error-text", 
+                holdDuration: 800 
+            },
+            { 
+                text: "", 
+                type: "looping-dots",
+                class: "error-text", 
+                loopCount: 3,
+                holdDuration: 500
+            },
+            { 
+                text: "Kredensial berhasil di verifikasi!", 
+                type: "typing",
+                class: "success-text", 
+                holdDuration: 1500 
+            },
+            { 
+                text: "Memuat data arsip", 
+                type: "typing",
+                class: "success-text", 
+                hasProgress: true,
+                progressDuration: 2500,
+                progressLabel: "LOADING ARCHIVE"
+            },
+            { 
+                text: "Rebooting system", 
+                type: "typing",
+                class: "success-text", 
+                hasProgress: true,
+                progressDuration: 3500,
+                progressLabel: "REBOOTING"
+            },
+            { 
+                text: "", 
+                type: "looping-dots",
+                class: "success-text", 
+                loopCount: 2,
+                holdDuration: 500
+            }
+        ];
+
+        function startRebootSequence() {
             isLocked = true;
             hiddenInput.disabled = true;
             hiddenInput.blur();
             hiddenInput.style.pointerEvents = 'none';
             cursor.style.display = 'none';
             
+            loginScreen.classList.add('hidden');
+            rebootScreen.style.display = 'flex';
+            
+            rebootMessage.textContent = '';
+            rebootMessage.className = 'reboot-message';
+            rebootProgressWrapper.classList.remove('active');
+            rebootProgressFill.style.width = '0%';
+            percentageValue.textContent = '0';
+            
+            let index = 0;
+            
+            function showNextMessage() {
+                if (index >= rebootSequence.length) {
+                    setTimeout(showSuccess, 800);
+                    return;
+                }
+                
+                const item = rebootSequence[index];
+                rebootMessage.className = 'reboot-message ' + item.class;
+                rebootMessage.innerHTML = '';
+                
+                if (item.type === 'looping-dots') {
+                    runLoopingDots(item, () => {
+                        index++;
+                        setTimeout(showNextMessage, item.holdDuration);
+                    });
+                } 
+                else if (item.hasProgress) {
+                    typeWriter(item.text, rebootMessage, () => {
+                        rebootProgressWrapper.classList.add('active');
+                        progressStatusLabel.textContent = item.progressLabel || 'LOADING';
+                        runProgressBar(item.progressDuration, () => {
+                            index++;
+                            setTimeout(() => {
+                                rebootProgressWrapper.classList.remove('active');
+                                rebootProgressFill.style.width = '0%';
+                                percentageValue.textContent = '0';
+                                showNextMessage();
+                            }, 500);
+                        });
+                    });
+                }
+                else {
+                    typeWriter(item.text, rebootMessage, () => {
+                        index++;
+                        setTimeout(showNextMessage, item.holdDuration);
+                    });
+                }
+            }
+            
+            setTimeout(showNextMessage, 500);
+        }
+
+        // =========================================
+        // TYPEWRITER KHUSUS
+        // =========================================
+        function typeWriter(text, element, callback) {
+            let i = 0;
+            element.innerHTML = '';
+            
+            const tempCursor = document.createElement('span');
+            tempCursor.className = 'typing-cursor';
+            element.appendChild(tempCursor);
+            
+            function typeNextChar() {
+                if (i >= text.length) {
+                    tempCursor.remove();
+                    if (callback) callback();
+                    return;
+                }
+                
+                const char = text[i];
+                const charSpan = document.createElement('span');
+                charSpan.textContent = char;
+                
+                if (char === '.') {
+                    charSpan.classList.add('loading-dot');
+                    charSpan.style.margin = '0';
+                    charSpan.style.fontSize = 'inherit';
+                    charSpan.style.color = 'inherit';
+                    charSpan.style.textShadow = 'inherit';
+                }
+                
+                tempCursor.parentNode.insertBefore(charSpan, tempCursor);
+                i++;
+                
+                const delay = (char === '.') ? DOT_TICK_SPEED : TYPING_SPEED;
+                setTimeout(typeNextChar, delay);
+            }
+            
+            setTimeout(typeNextChar, TYPING_SPEED);
+        }
+
+        // =========================================
+        // LOOPING DOTS
+        // =========================================
+        function runLoopingDots(item, callback) {
+            rebootMessage.innerHTML = '';
+            
+            let currentLoop = 0;
+            const totalLoops = item.loopCount || 3;
+            const dotCount = 4;
+            const dotSpacing = 800;
+            
+            function playDots() {
+                if (currentLoop >= totalLoops) {
+                    rebootMessage.innerHTML = '';
+                    if (callback) callback();
+                    return;
+                }
+                
+                const dotsContainer = document.createElement('span');
+                dotsContainer.className = 'looping-dots';
+                rebootMessage.innerHTML = '';
+                rebootMessage.appendChild(dotsContainer);
+                
+                let dotIndex = 0;
+                
+                function addDot() {
+                    if (dotIndex >= dotCount) {
+                        setTimeout(() => {
+                            currentLoop++;
+                            playDots();
+                        }, 700);
+                        return;
+                    }
+                    
+                    const dot = document.createElement('span');
+                    dot.className = 'loading-dot';
+                    dot.textContent = '.';
+                    dotsContainer.appendChild(dot);
+                    
+                    dotIndex++;
+                    setTimeout(addDot, dotSpacing);
+                }
+                
+                addDot();
+            }
+            
+            playDots();
+        }
+
+        // =========================================
+        // PROGRESS BAR
+        // =========================================
+        function runProgressBar(duration, callback) {
+            const startTime = Date.now();
+            const timer = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min((elapsed / duration) * 100, 100);
+                percentageValue.textContent = Math.floor(progress);
+                rebootProgressFill.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(timer);
+                    percentageValue.textContent = '100';
+                    rebootProgressFill.style.width = '100%';
+                    progressStatusLabel.textContent = 'COMPLETE';
+                    if (callback) callback();
+                }
+            }, 30);
+        }
+
+        // =========================================
+        // BREACH
+        // =========================================
+        function triggerBreach() {
+            isLocked = true;
+            hiddenInput.disabled = true;
+            hiddenInput.blur();
+            hiddenInput.style.pointerEvents = 'none';
+            cursor.style.display = 'none';
             loginScreen.classList.add('hidden');
             breachScreen.style.display = 'block';
 
@@ -611,17 +1400,14 @@
             } else {
                 currentPenaltyTime = BASE_PENALTY;
             }
-
             countdownDisplay.textContent = currentPenaltyTime;
             penaltyBox.textContent = `PENALTI AKTIF: ${currentPenaltyTime / BASE_PENALTY}X KELIPATAN (${currentPenaltyTime}s)`;
 
             let timeLeft = currentPenaltyTime;
-            
             clearInterval(countdownInterval);
             countdownInterval = setInterval(() => {
                 timeLeft--;
                 countdownDisplay.textContent = timeLeft;
-
                 if (timeLeft <= 0) {
                     clearInterval(countdownInterval);
                     resetSystem();
@@ -634,27 +1420,74 @@
             hiddenInput.disabled = false;
             hiddenInput.style.pointerEvents = 'none';
             cursor.style.display = 'inline-block';
-            
             breachScreen.style.display = 'none';
             loginScreen.classList.remove('hidden');
-
             systemMessage.innerHTML = '[SISTEM DI-RESET] Waktu penalti telah berakhir. Sistem memulihkan akses awal.';
             systemMessage.style.color = 'var(--text-main)';
-
             startScramble();
         }
 
+        // =========================================
+        // SUKSES + PARTICLE EXPLOSION
+        // =========================================
         function showSuccess() {
             clearInterval(countdownInterval);
             clearInterval(scrambleInterval);
+            rebootScreen.style.display = 'none';
             loginScreen.classList.add('hidden');
             breachScreen.style.display = 'none';
             successScreen.style.display = 'block';
+            setTimeout(createPixelExplosion, 200);
         }
 
+        function createPixelExplosion() {
+            particleContainer.innerHTML = '';
+            const panel = successScreen;
+            const rect = panel.getBoundingClientRect();
+            const particleCount = 120;
+            
+            const colors = [
+                'var(--green-success)',
+                'var(--cyber-cyan)',
+                'var(--cyber-magenta)',
+                '#ffffff'
+            ];
+            
+            for (let i = 0; i < particleCount; i++) {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const maxDistance = Math.max(rect.width, rect.height) * 0.7;
+                const distance = maxDistance * (0.5 + Math.random() * 0.5);
+                
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                pixel.style.setProperty('--tx', tx + 'px');
+                pixel.style.setProperty('--ty', ty + 'px');
+                
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                pixel.style.backgroundColor = color;
+                pixel.style.boxShadow = `0 0 6px ${color}`;
+                pixel.style.animationDelay = (Math.random() * 0.3) + 's';
+                
+                const size = 2 + Math.random() * 3;
+                pixel.style.width = size + 'px';
+                pixel.style.height = size + 'px';
+                
+                particleContainer.appendChild(pixel);
+            }
+            
+            setTimeout(() => {
+                particleContainer.innerHTML = '';
+            }, 2500);
+        }
+
+        // --- INIT ---
         window.onload = () => {
-            hiddenInput.focus();
-            startScramble();
+            biometricScreen.style.display = 'block';
+            loginScreen.style.display = 'none';
         };
 
         document.addEventListener('contextmenu', event => event.preventDefault());
